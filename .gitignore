@@ -134,4 +134,4 @@ _ReSharper*/
 #Nuget packages folder
 packages/
 # ignore the result folder as it is updated quite often
-./result_folder
+result_folder/
