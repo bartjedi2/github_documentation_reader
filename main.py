@@ -3,6 +3,7 @@ import csv
 import os
 import shutil
 import stat
+import time
 from tempfile import NamedTemporaryFile
 
 from git import Repo
@@ -29,17 +30,17 @@ def get_list():
 
 
 def set_result(item):
-    file1 = open(result_folder + item[0] + '.txt', 'r', encoding="utf8")
-    lines = file1.readlines()
-    dataline = lines[-2]
-    split = dataline.split('│')  # │  (U+2502) is a different symbol than | (U+007C)
-    totalcode = split[4].strip()
-    totalcomments = split[6].strip()
-    commentpercentage = (int(totalcomments) / (int(totalcode) + int(totalcomments))) * 100
-    commentpercentage = round(commentpercentage, 1)
-    item[2] = totalcode
-    item[3] = totalcomments
-    item[-1] = commentpercentage
+    with open(result_folder + item[0] + '.txt', 'r', encoding="utf8") as file1:
+        lines = file1.readlines()
+        dataline = lines[-2]
+        split = dataline.split('│')  # │  (U+2502) is a different symbol than | (U+007C)
+        totalcode = split[4].strip()
+        totalcomments = split[6].strip()
+        commentpercentage = (int(totalcomments) / (int(totalcode) + int(totalcomments))) * 100
+        commentpercentage = round(commentpercentage, 1)
+        item[2] = totalcode
+        item[3] = totalcomments
+        item[-1] = commentpercentage
     new_result.append(item)
 
 
@@ -73,8 +74,7 @@ if __name__ == '__main__':
             set_result(item)
         else:
             download_and_use_repository(item)
-    writer = csv.writer(temp_file, delimiter=',', quotechar='"')
-    for row in new_result:
-        writer.writerow(row)
-    # for some reason shutil.move throws an error, but still successfully works
-    shutil.move(temp_file.name, new_file)
+    with open(new_file, 'w', encoding="utf8", newline='') as newfile:
+        writer = csv.writer(newfile, delimiter=',', quotechar='"')
+        for row in new_result:
+            writer.writerow(row)
