@@ -8,8 +8,8 @@ from tempfile import NamedTemporaryFile
 
 from git import Repo
 
-dataset_file = './python_dataset.csv'
-new_file = './results_dataset.csv'
+dataset_file = './javascript_dataset.csv'
+new_file = './javascript_results_dataset.csv'
 folder_name = "./current_repository"
 temp_file = NamedTemporaryFile('w+t', newline='', delete=False)
 result_folder = "./result_folder/"
@@ -32,6 +32,7 @@ def get_list():
 def set_result(item):
     with open(result_folder + item[0] + '.txt', 'r', encoding="utf8") as file1:
         lines = file1.readlines()
+        # total results are stored on the second to last line
         dataline = lines[-2]
         split = dataline.split('│')  # │  (U+2502) is a different symbol than | (U+007C)
         totalcode = split[4].strip()
@@ -40,11 +41,12 @@ def set_result(item):
         commentpercentage = round(commentpercentage, 1)
         item[2] = totalcode
         item[3] = totalcomments
-        item[-1] = commentpercentage
+        item[-2] = commentpercentage
     new_result.append(item)
 
 
 def download_and_use_repository(item):
+    print(item[1])
     repo = Repo.clone_from(item[1], folder_name)
     # run the system command to use pygount to pull the repository, this step can take a while as some repositories
     # are quite big. Dev note: A repository of 7gb took around 10 minutes of downloading for me and 15 minutes of
@@ -64,16 +66,21 @@ def download_and_use_repository(item):
 
 
 if __name__ == '__main__':
+    # get the external list of repositories
     header, list = get_list()
     new_result.append(header)
+    # create the folder to store the results
     if not os.path.exists(result_folder):
-        # Create a new directory because it does not exist
         os.makedirs(result_folder)
+    # loop over the list
     for i, item in enumerate(list):
         if os.path.exists(result_folder + item[0] + ".txt"):
+            # if the result already exists, use that result
             set_result(item)
         else:
+            # result does not exist yet, download the repository and scan it
             download_and_use_repository(item)
+    # Write the results into a new .csv file
     with open(new_file, 'w', encoding="utf8", newline='') as newfile:
         writer = csv.writer(newfile, delimiter=',', quotechar='"')
         for row in new_result:
